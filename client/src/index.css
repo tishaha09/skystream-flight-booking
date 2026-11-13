@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    /* IndiGo / SkyStream Blue Theme Tokens (from Reference Image) */
+    --bg-base: #EDF2F7;
+    --bg-shell: #FFFFFF;
+    --bg-surface: #FFFFFF;
+    --bg-surface-subtle: #F8FAFC;
+    --bg-card: #FFFFFF;
+
+    /* Airline Primary Navy & Sky Accents */
+    --primary: #113B7A;
+    --primary-hover: #0B2545;
+    --primary-sky: #0284C7;
+    --accent-sky: #0EA5E9;
+    --accent-yellow: #FACC15;
+    --accent-emerald: #10B981;
+
+    /* High-contrast Typography */
+    --text-primary: #0B2545;
+    --text-secondary: #334155;
+    --text-muted: #64748B;
+    --text-light: #94A3B8;
+
+    /* Clean Borders */
+    --border-subtle: #E2E8F0;
+    --border-highlight: #CBD5E1;
+  }
+
+  html,
+  body {
+    background-color: #EAEEF3;
+    color: #0F172A;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    min-height: 100%;
+    width: 100%;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* Custom Scrollbar for Smooth, Non-trapping Scrolling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 9999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Firefox scrollbar support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 #F1F5F9;
+}
+
+/* Print Styles for Boarding Pass */
+@media print {
+  body {
+    background: #FFFFFF !important;
+    color: #000000 !important;
+  }
+  header, footer, nav, button, .no-print {
+    display: none !important;
+  }
+  .print-area {
+    box-shadow: none !important;
+    border: 1px solid #CCCCCC !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+}

@@ -1,0 +1,399 @@
+{
+  "info": {
+    "name": "SkyStream Flight Booking API",
+    "_postman_id": "skystream-api-v1-collection",
+    "description": "Complete Postman collection for SkyStream Flight Booking System including automated test scripts for JWT token saving and status assertion.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "userToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "flightId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "bookingId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Checks",
+      "item": [
+        {
+          "name": "Root Health Text",
+          "request": {
+            "method": "GET",
+            "url": "http://localhost:5000/"
+          }
+        },
+        {
+          "name": "API Health JSON",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Authentication",
+      "item": [
+        {
+          "name": "Register User (Public)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Student Tester\",\n  \"email\": \"student@skystream.test\",\n  \"password\": \"Student@123\",\n  \"phone\": \"+91 98888 77777\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/register"
+          }
+        },
+        {
+          "name": "Login Demo User (Saves userToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('userToken', res.token);",
+                  "  pm.environment.set('userToken', res.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@skystream.test\",\n  \"password\": \"User@123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login Admin (Saves adminToken)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) {",
+                  "  pm.collectionVariables.set('adminToken', res.token);",
+                  "  pm.environment.set('adminToken', res.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@skystream.test\",\n  \"password\": \"Admin@123\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Get Current Profile (GET /api/auth/me)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "Update Profile (PUT /api/auth/profile)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tisha Demo Passenger Updated\",\n  \"phone\": \"+91 99999 00000\"\n}"
+            },
+            "url": "{{baseUrl}}/auth/profile"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Flights & Seats",
+      "item": [
+        {
+          "name": "Get Flights with Search & Filter",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.flights && res.flights.length > 0) {",
+                  "  pm.collectionVariables.set('flightId', res.flights[0]._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/flights?source=Delhi&travelClass=Economy&stops=0&sort=cheapest",
+              "host": ["{{baseUrl}}"],
+              "path": ["flights"],
+              "query": [
+                { "key": "source", "value": "Delhi" },
+                { "key": "travelClass", "value": "Economy" },
+                { "key": "stops", "value": "0" },
+                { "key": "sort", "value": "cheapest" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Flight by ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/flights/{{flightId}}"
+          }
+        },
+        {
+          "name": "Get Seats for Flight",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/flights/{{flightId}}/seats"
+          }
+        },
+        {
+          "name": "Get Seat Availability Summary",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/flights/{{flightId}}/seats/availability"
+          }
+        },
+        {
+          "name": "Admin Create Flight (POST /api/flights)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"airline\": \"Air India\",\n  \"flightNumber\": \"AI-999\",\n  \"source\": \"Bengaluru (BLR)\",\n  \"sourceCode\": \"BLR\",\n  \"destination\": \"Mumbai (BOM)\",\n  \"destinationCode\": \"BOM\",\n  \"departureDate\": \"2026-11-25\",\n  \"departureTime\": \"06:00 AM\",\n  \"arrivalTime\": \"07:45 AM\",\n  \"duration\": \"1h 45m\",\n  \"price\": 4200,\n  \"totalSeats\": 60,\n  \"travelClass\": \"Economy\",\n  \"stops\": 0,\n  \"aircraft\": \"Airbus A321neo\",\n  \"terminal\": \"T2\",\n  \"gate\": \"B14\",\n  \"status\": \"scheduled\",\n  \"baggageInformation\": \"Cabin: 7kg, Check-in: 15kg\"\n}"
+            },
+            "url": "{{baseUrl}}/flights"
+          }
+        },
+        {
+          "name": "Admin Update Flight",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"delayed\",\n  \"departureTime\": \"06:30 AM\"\n}"
+            },
+            "url": "{{baseUrl}}/flights/{{flightId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Bookings & Transactions",
+      "item": [
+        {
+          "name": "Create Booking with Student Concession (10% OFF)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.bookingId) {",
+                  "  pm.collectionVariables.set('bookingId', res.bookingId);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flightId\": \"{{flightId}}\",\n  \"selectedSeats\": [\"4A\", \"4B\"],\n  \"fareType\": \"Student\",\n  \"passengers\": [\n    {\n      \"name\": \"Student Flyer One\",\n      \"age\": 21,\n      \"gender\": \"Male\",\n      \"idNumber\": \"STU-9842\",\n      \"institutionName\": \"National Aviation University\",\n      \"email\": \"student1@example.com\"\n    },\n    {\n      \"name\": \"Student Flyer Two\",\n      \"age\": 22,\n      \"gender\": \"Female\",\n      \"idNumber\": \"STU-9843\",\n      \"institutionName\": \"National Aviation University\",\n      \"email\": \"student2@example.com\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/bookings"
+          }
+        },
+        {
+          "name": "Get My Bookings (GET /api/bookings/my)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/bookings/my"
+          }
+        },
+        {
+          "name": "Get Booking by ID (GET /api/bookings/:id)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          }
+        },
+        {
+          "name": "Cancel Booking (DELETE /api/bookings/:id)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/bookings/{{bookingId}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Admin Operations",
+      "item": [
+        {
+          "name": "Get Admin Dashboard Metrics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/admin/dashboard"
+          }
+        },
+        {
+          "name": "Get All Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/admin/users"
+          }
+        },
+        {
+          "name": "Get All Bookings (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+            ],
+            "url": "{{baseUrl}}/admin/bookings"
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Error Cases Verification",
+      "item": [
+        {
+          "name": "400 Bad Request (Senior Citizen Age < 60 Validation)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flightId\": \"{{flightId}}\",\n  \"selectedSeats\": [\"5A\"],\n  \"fareType\": \"Senior Citizen\",\n  \"passengers\": [\n    {\n      \"name\": \"Underage Senior\",\n      \"age\": 45,\n      \"gender\": \"Male\",\n      \"idNumber\": \"AADHAAR123\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/bookings"
+          }
+        },
+        {
+          "name": "401 Unauthorized (No Token)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/auth/me"
+          }
+        },
+        {
+          "name": "403 Forbidden (User accessing Admin endpoint)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "url": "{{baseUrl}}/admin/dashboard"
+          }
+        },
+        {
+          "name": "404 Not Found (Invalid Flight ID)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/flights/600000000000000000000000"
+          }
+        },
+        {
+          "name": "409 Conflict (Duplicate Seat Booking)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{userToken}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flightId\": \"{{flightId}}\",\n  \"selectedSeats\": [\"2A\"],\n  \"passengers\": [\n    {\n      \"name\": \"Conflict Tester\",\n      \"age\": 22,\n      \"gender\": \"Male\",\n      \"idNumber\": \"CNF999\"\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/bookings"
+          }
+        }
+      ]
+    }
+  ]
+}
