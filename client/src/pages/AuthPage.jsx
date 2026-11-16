@@ -37,7 +37,9 @@ export const AuthPage = ({ initialMode = "login" }) => {
   const loginEmailRef = useRef(null);
   const registerNameRef = useRef(null);
 
-  const from = location.state?.from?.pathname || "/";
+  const fromLocation = location.state?.from;
+  const fromPath = fromLocation?.pathname || "/";
+  const fromState = fromLocation?.state || null;
 
   // Sync mode with route if navigating between /login and /register
   useEffect(() => {
@@ -111,7 +113,7 @@ export const AuthPage = ({ initialMode = "login" }) => {
       setLoading(true);
       setError("");
       await login(loginData.email, loginData.password);
-      navigate(from, { replace: true });
+      navigate(fromPath, { replace: true, state: fromState });
     } catch (err) {
       setError(err.message || "Invalid email or password. Please verify your credentials.");
     } finally {
@@ -146,7 +148,7 @@ export const AuthPage = ({ initialMode = "login" }) => {
       setLoading(true);
       setError("");
       await register(registerData.name, registerData.email, registerData.password, registerData.phone);
-      navigate(from, { replace: true });
+      navigate(fromPath, { replace: true, state: fromState });
     } catch (err) {
       setError(err.message || "Registration failed. This email may already be registered.");
     } finally {

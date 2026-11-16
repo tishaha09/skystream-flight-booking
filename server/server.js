@@ -123,8 +123,8 @@ app.use(errorHandler);
 
 // Start server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => {
-  console.log(`[SkyStream Server] Running in ${process.env.NODE_ENV || "development"} mode on http://localhost:${PORT}`);
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`[SkyStream Server] Running in ${process.env.NODE_ENV || "development"} mode on http://0.0.0.0:${PORT}`);
 });
 
 export { app, server, io };

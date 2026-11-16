@@ -1,0 +1,65 @@
+services:
+  # ====================================================================
+  # Backend Service: Node.js + Express REST & Socket.IO API
+  # ====================================================================
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: skystream-backend
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-5000}:5000"
+    environment:
+      PORT: 5000
+      NODE_ENV: ${NODE_ENV:-production}
+      MONGODB_URI: ${MONGODB_URI:-mongodb://host.docker.internal:27017/skystream}
+      JWT_SECRET: ${JWT_SECRET:-skystream_super_secret_jwt_key_2026}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      CLIENT_ORIGIN: ${CLIENT_ORIGIN:-http://localhost:5173}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - skystream-network
+    healthcheck:
+      test:
+        - "CMD"
+        - "node"
+        - "-e"
+        - "fetch('http://localhost:5000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  # ====================================================================
+  # Frontend Service: React 19 + Vite SPA served via Nginx Reverse Proxy
+  # ====================================================================
+  frontend:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: skystream-frontend
+    restart: unless-stopped
+    ports:
+      - "${CLIENT_PORT:-5173}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - skystream-network
+    healthcheck:
+      test:
+        - "CMD"
+        - "wget"
+        - "-q"
+        - "--spider"
+        - "http://127.0.0.1/"
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+networks:
+  skystream-network:
+    driver: bridge

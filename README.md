@@ -130,6 +130,32 @@ Open `http://localhost:5173` in your browser.
 
 ---
 
+## 🐳 Docker & Containerized Deployment
+
+SkyStream supports zero-configuration Docker containerization connecting directly to your Windows-hosted MongoDB instance (`mongodb://host.docker.internal:27017/skystream`):
+
+```bash
+# 1. Start the application with Docker Compose
+docker compose up -d
+
+# 2. Check container health status
+docker compose ps
+
+# 3. View live application logs
+docker compose logs -f
+
+# 4. Stop the containers
+docker compose down
+```
+
+- **Frontend Application (Nginx SPA):** [http://localhost:5173](http://localhost:5173)
+- **Backend API Direct:** [http://localhost:5000/api/flights](http://localhost:5000/api/flights)
+- **Backend Health Check:** [http://localhost:5000/api/health](http://localhost:5000/api/health)
+
+For complete architecture details, troubleshooting, and rebuild instructions, see [docker.md](file:///C:/Users/TISHA/skystream-flight-booking/docker.md).
+
+---
+
 ## 🔑 Demo Accounts (Examiner Ready)
 
 | Role | Email | Password | Access Privileges |

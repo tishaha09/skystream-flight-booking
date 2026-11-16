@@ -16,7 +16,16 @@ export const createBooking = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const { flightId, selectedSeats, passengers, fareType = "Regular" } = req.body;
+    const {
+      flightId,
+      selectedSeats: rawSelectedSeats,
+      seats: rawSeats,
+      passengers,
+      fareType = "Regular",
+    } = req.body;
+
+    // Accept either selectedSeats or seats field
+    const selectedSeats = rawSelectedSeats || rawSeats;
 
     // 1. Basic validation
     if (!flightId || !selectedSeats || !passengers) {

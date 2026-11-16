@@ -64,6 +64,16 @@ export const FlightDetails = () => {
       return;
     }
 
+    // Persist to sessionStorage so page refresh or login redirect preserves seat selection
+    try {
+      sessionStorage.setItem("skystream_selected_seats", JSON.stringify(selectedSeats));
+      if (flight) {
+        sessionStorage.setItem("skystream_booking_flight", JSON.stringify(flight));
+      }
+    } catch {
+      // ignore storage quota issues
+    }
+
     navigate(`/booking/${id}`, {
       state: {
         flight,

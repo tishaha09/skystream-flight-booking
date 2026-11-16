@@ -14,9 +14,29 @@ export const Booking = () => {
   const { user } = useAuth();
 
   const stateData = location.state || {};
-  const [flight, setFlight] = useState(stateData.flight || null);
-  const selectedSeats = stateData.selectedSeats || [];
-  const [loadingFlight, setLoadingFlight] = useState(!stateData.flight);
+  const [flight, setFlight] = useState(() => {
+    if (stateData.flight) return stateData.flight;
+    try {
+      const cached = sessionStorage.getItem("skystream_booking_flight");
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const selectedSeats = (() => {
+    if (Array.isArray(stateData.selectedSeats) && stateData.selectedSeats.length > 0) {
+      return stateData.selectedSeats;
+    }
+    try {
+      const cached = sessionStorage.getItem("skystream_selected_seats");
+      return cached ? JSON.parse(cached) : [];
+    } catch {
+      return [];
+    }
+  })();
+
+  const [loadingFlight, setLoadingFlight] = useState(!flight);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,7 +61,10 @@ export const Booking = () => {
     if (!flight && flightId) {
       apiRequest(`/flights/${flightId}`)
         .then((data) => {
-          if (data && data.flight) setFlight(data.flight);
+          if (data && data.flight) {
+            setFlight(data.flight);
+            sessionStorage.setItem("skystream_booking_flight", JSON.stringify(data.flight));
+          }
         })
         .catch((err) => setError(err.message))
         .finally(() => setLoadingFlight(false));
@@ -111,6 +134,7 @@ export const Booking = () => {
 
       const payload = {
         flightId: flight._id,
+        selectedSeats: selectedSeats,
         seats: selectedSeats,
         fareType: selectedFareType,
         passengers: passengers.map((p) => ({
