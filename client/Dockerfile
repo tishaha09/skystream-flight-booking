@@ -27,18 +27,19 @@ RUN npm run build
 # Stage 2: Serve production assets via Nginx
 FROM nginx:alpine AS runner
 
-# Remove default nginx configurations
-RUN rm -rf /etc/nginx/conf.d/default.conf
+# Install envsubst (via gettext)
+RUN apk add --no-cache gettext
 
 # Default environment variables for template substitution
 ENV PORT=80
-ENV BACKEND_URL=http://backend:5000
+ENV BACKEND_URL=https://skystream-backend-kuri.onrender.com
 
-# Copy normalization script for BACKEND_URL to ensure valid protocol scheme
-COPY 15-normalize-backend.sh /docker-entrypoint.d/15-normalize-backend.sh
-RUN chmod +x /docker-entrypoint.d/15-normalize-backend.sh
+# Copy custom Nginx entrypoint
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
 
-# Copy custom Nginx template with reverse proxy and dynamic port/backend substitution
+# Remove default configs and provide custom template
+RUN rm -rf /etc/nginx/conf.d/default.conf /docker-entrypoint.d/*
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
@@ -52,5 +53,6 @@ EXPOSE 80 10000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
   CMD wget -q --spider http://127.0.0.1:${PORT:-80}/ || exit 1
 
-# Start Nginx in foreground
+# Start container using custom entrypoint
+ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["nginx", "-g", "daemon off;"]
