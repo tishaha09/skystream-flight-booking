@@ -42,12 +42,12 @@ COPY --chown=skystream:skystream . .
 # Switch to non-privileged user
 USER skystream
 
-# Expose backend REST & WebSocket port
-EXPOSE 5000
+# Expose backend REST & WebSocket port (5000 default, 10000 for Render)
+EXPOSE 5000 10000
 
 # Container healthcheck querying the /api/health endpoint
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "fetch('http://localhost:5000/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
+  CMD node -e "fetch('http://localhost:' + (process.env.PORT || 5000) + '/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"
 
 # Use dumb-init to run the server entry point as PID 1
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]

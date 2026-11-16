@@ -7,9 +7,14 @@
  * @param {object} options - Fetch options (method, body, headers, etc.)
  * @returns {Promise<any>} The parsed JSON response
  */
+const API_BASE = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+
 export async function apiRequest(endpoint, options = {}) {
-  // Normalize endpoint to start with /api if not present
-  const url = endpoint.startsWith("/api") ? endpoint : `/api${endpoint}`;
+  // Support absolute URLs, or prefix with VITE_API_URL if configured
+  const normalizedEndpoint = endpoint.startsWith("/api") ? endpoint : `/api${endpoint}`;
+  const url = endpoint.startsWith("http://") || endpoint.startsWith("https://")
+    ? endpoint
+    : `${API_BASE}${normalizedEndpoint}`;
 
   const token = localStorage.getItem("skystream_token");
 

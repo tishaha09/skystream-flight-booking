@@ -20,23 +20,39 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware.js";
 // Load environment variables
 dotenv.config();
 
+// Validate critical environment variables
+if (!process.env.JWT_SECRET) {
+  console.error("[FATAL CONFIG ERROR] JWT_SECRET environment variable is missing. Server will not start.");
+  process.exit(1);
+}
+
 // Connect to MongoDB
 connectDB();
 
 const app = express();
 const server = http.createServer(app);
 
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const rawOrigin = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const allowedOrigins = rawOrigin.includes(",")
+  ? rawOrigin.split(",").map((o) => o.trim())
+  : [rawOrigin];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (health-checks, curl, server-to-server)
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
 // Configure CORS
-app.use(
-  cors({
-    origin: CLIENT_ORIGIN,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.use(cors(corsOptions));
 
 // Body parser with 100kb payload limit
 app.use(express.json({ limit: "100kb" }));
@@ -45,7 +61,13 @@ app.use(express.urlencoded({ extended: true, limit: "100kb" }));
 // Socket.IO configuration
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_ORIGIN,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes("*")) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked for Socket.IO origin: ${origin}`));
+      }
+    },
     credentials: true,
   },
 });
@@ -59,10 +81,7 @@ io.use(async (socket, next) => {
         socket.handshake.headers.authorization.split(" ")[1]);
 
     if (token) {
-      const decoded = jwt.verify(
-        token,
-        process.env.JWT_SECRET || "skystream_super_secret_jwt_key_2026"
-      );
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select("-password");
       if (user) {
         socket.user = user;

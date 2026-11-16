@@ -38,7 +38,13 @@ export const NotificationBell = () => {
     fetchNotifications();
 
     // Initialize Socket.IO connection
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL ||
+      import.meta.env.VITE_API_URL ||
+      import.meta.env.VITE_BACKEND_URL ||
+      (typeof window !== "undefined" && window.location.hostname !== "localhost"
+        ? window.location.origin
+        : "http://localhost:5000");
     const socket = io(socketUrl, {
       auth: { token },
       transports: ["websocket", "polling"],

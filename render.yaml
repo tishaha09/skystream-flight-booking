@@ -1,0 +1,54 @@
+services:
+  # ====================================================================
+  # Backend Web Service: Node.js + Express REST & Socket.IO API
+  # ====================================================================
+  - type: web
+    name: skystream-backend
+    runtime: docker
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false # Set privately in Render Dashboard with MongoDB Atlas connection string
+      - key: JWT_SECRET
+        generateValue: true # Render automatically generates a cryptographically secure random string
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: CLIENT_ORIGIN
+        fromService:
+          type: web
+          name: skystream-frontend
+          property: host
+
+  # ====================================================================
+  # Frontend Web Service: React 19 + Vite SPA (Nginx Reverse Proxy)
+  # ====================================================================
+  - type: web
+    name: skystream-frontend
+    runtime: docker
+    dockerfilePath: ./client/Dockerfile
+    dockerContext: ./client
+    plan: free
+    region: oregon
+    healthCheckPath: /
+    envVars:
+      - key: BACKEND_URL
+        fromService:
+          type: web
+          name: skystream-backend
+          property: url
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: skystream-backend
+          property: url
+      - key: VITE_SOCKET_URL
+        fromService:
+          type: web
+          name: skystream-backend
+          property: url

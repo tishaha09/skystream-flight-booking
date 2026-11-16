@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
  * @returns {string} Signed JWT token
  */
 export const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET || "skystream_super_secret_jwt_key_2026", {
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
     algorithm: "HS256",
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
