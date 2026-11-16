@@ -34,6 +34,10 @@ RUN rm -rf /etc/nginx/conf.d/default.conf
 ENV PORT=80
 ENV BACKEND_URL=http://backend:5000
 
+# Copy normalization script for BACKEND_URL to ensure valid protocol scheme
+COPY 15-normalize-backend.sh /docker-entrypoint.d/15-normalize-backend.sh
+RUN chmod +x /docker-entrypoint.d/15-normalize-backend.sh
+
 # Copy custom Nginx template with reverse proxy and dynamic port/backend substitution
 COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY nginx.conf /etc/nginx/conf.d/default.conf

@@ -14,16 +14,13 @@ services:
       - key: NODE_ENV
         value: production
       - key: MONGODB_URI
-        sync: false # Set privately in Render Dashboard with MongoDB Atlas connection string
+        sync: false
       - key: JWT_SECRET
-        generateValue: true # Render automatically generates a cryptographically secure random string
+        generateValue: true
       - key: JWT_EXPIRES_IN
         value: 7d
       - key: CLIENT_ORIGIN
-        fromService:
-          type: web
-          name: skystream-frontend
-          property: host
+        value: "*"
 
   # ====================================================================
   # Frontend Web Service: React 19 + Vite SPA (Nginx Reverse Proxy)
@@ -41,14 +38,4 @@ services:
         fromService:
           type: web
           name: skystream-backend
-          property: url
-      - key: VITE_API_URL
-        fromService:
-          type: web
-          name: skystream-backend
-          property: url
-      - key: VITE_SOCKET_URL
-        fromService:
-          type: web
-          name: skystream-backend
-          property: url
+          property: host
